@@ -1,0 +1,6 @@
+{
+  "appId": "com.netis.manager",
+  "appName": "Netis Manager",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
