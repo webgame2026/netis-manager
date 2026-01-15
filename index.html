@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Netis Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="theme-color" content="#2563EB">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .loader {
+            border-top-color: #2563EB;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Pulse animation for internet status */
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .pulse-ring-error {
+             animation: pulse-ring-error 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring-error {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #2563EB;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #2563EB;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-6 overflow-y-auto">
+        <div class="w-full max-w-sm">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg shadow-blue-200">
+                    <i class="fa-solid fa-network-wired text-3xl text-white"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-slate-900">Netis Manager</h1>
+                <p class="text-slate-500 mt-2">Connect to Router</p>
+            </div>
+            
+            <form id="login-form" class="space-y-4">
+                <!-- Router IP Input -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Router IP Address</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-server text-slate-400"></i>
+                        </div>
+                        <input type="text" id="router-ip" value="192.168.1.1" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all font-mono text-sm" placeholder="192.168.1.1" required>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Username</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-user text-slate-400"></i>
+                        </div>
+                        <input type="text" id="username" value="admin" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" placeholder="admin" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-lock text-slate-400"></i>
+                        </div>
+                        <input type="password" id="password" value="password" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all mt-6">
+                    Connect & Login
+                </button>
+            </form>
+            <p class="text-xs text-center text-slate-400 mt-8">
+                Default IP: 192.168.1.1<br>Credentials: admin / password
+            </p>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header id="app-header" class="hidden bg-white border-b border-slate-100 pt-safe-top">
+        <div class="flex justify-between items-center px-4 py-3">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fa-solid fa-wifi text-white text-xs"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-lg text-slate-800 leading-none">Netis</div>
+                    <div class="text-[10px] text-slate-400 font-mono" id="header-ip">192.168.1.1</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="connection-badge" class="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Online
+                </span>
+                <button onclick="logout()" class="text-slate-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-50">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main id="main-content" class="hidden flex-1 overflow-y-auto hide-scrollbar bg-slate-50 pb-24">
+        
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="p-4 space-y-4 animate-fade-in">
+            <!-- Internet Status Card -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Internet Status</h2>
+                    <i class="fa-solid fa-globe text-blue-500"></i>
+                </div>
+                <div class="flex items-center gap-4">
+                    <!-- Status Icon -->
+                    <div id="dash-wan-icon-bg" class="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center pulse-ring transition-colors">
+                        <i id="dash-wan-icon" class="fa-solid fa-check text-2xl text-green-500"></i>
+                    </div>
+                    <div>
+                        <div id="dash-wan-status" class="text-2xl font-bold text-slate-900">Connected</div>
+                        <div class="text-sm text-slate-400">WAN IP: <span id="wan-ip">Calculating...</span></div>
+                    </div>
+                </div>
+                <div id="dash-wan-stats" class="mt-6 grid grid-cols-2 gap-4 border-t border-slate-50 pt-4">
+                    <div>
+                        <div class="text-xs text-slate-400 mb-1">Download</div>
+                        <div class="text-lg font-semibold text-slate-800 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-down text-blue-500 text-xs"></i> 94.5 <span class="text-xs text-slate-400 font-normal">Mbps</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 mb-1">Upload</div>
+                        <div class="text-lg font-semibold text-slate-800 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-up text-purple-500 text-xs"></i> 42.1 <span class="text-xs text-slate-400 font-normal">Mbps</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 mb-2">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-800" id="uptime">2d 4h</div>
+                    <div class="text-xs text-slate-400">System Uptime</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 mb-2">
+                        <i class="fa-solid fa-laptop"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-800" id="device-count">5</div>
+                    <div class="text-xs text-slate-400">Connected Devices</div>
+                </div>
+            </div>
+
+            <!-- Router Info -->
+            <div class="bg-blue-600 text-white p-5 rounded-2xl shadow-lg shadow-blue-200">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-bold text-lg">Netis N2</h3>
+                        <p class="text-blue-100 text-sm">Firmware v2.4.11</p>
+                        <p class="text-blue-200 text-xs mt-1 font-mono" id="dashboard-router-ip">IP: 192.168.1.1</p>
+                    </div>
+                    <span class="bg-white/20 px-2 py-1 rounded text-xs">AC1200</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- INTERNET / WAN VIEW -->
+        <div id="view-internet" class="p-4 space-y-4 hidden">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-bold text-slate-800">WAN Connection</h2>
+                    <div class="flex items-center">
+                         <span id="wan-status-badge" class="text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-md mr-3">CONNECTED</span>
+                         <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="wan-toggle" checked class="sr-only peer" onchange="toggleWanConnection()">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <form onsubmit="saveWanSettings(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Connection Type</label>
+                        <div class="relative">
+                            <select id="wan-type" onchange="updateWanForm()" class="w-full appearance-none px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 focus:border-blue-500 outline-none text-slate-700">
+                                <option value="dynamic">Dynamic IP (DHCP)</option>
+                                <option value="pppoe">PPPoE</option>
+                                <option value="static">Static IP</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PPPoE Fields -->
+                    <div id="pppoe-fields" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">ISP Username</label>
+                            <input type="text" id="pppoe-user" class="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 focus:border-blue-500 outline-none" placeholder="username@isp.com">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">ISP Password</label>
+                            <input type="password" id="pppoe-pass" class="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 focus:border-blue-500 outline-none" placeholder="••••••">
+                        </div>
+                    </div>
+
+                    <!-- Static IP Fields -->
+                    <div id="static-fields" class="space-y-4 hidden">
+                         <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">IP Address</label>
+                            <input type="text" class="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 focus:border-blue-500 outline-none" placeholder="192.168.100.2">
+                        </div>
+                         <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Subnet Mask</label>
+                            <input type="text" class="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 focus:border-blue-500 outline-none" value="255.255.255.0">
+                        </div>
+                         <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Default Gateway</label>
+                            <input type="text" class="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 focus:border-blue-500 outline-none" placeholder="192.168.100.1">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Primary DNS</label>
+                            <input type="text" class="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 focus:border-blue-500 outline-none" value="8.8.8.8">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-slate-800 text-white py-3 rounded-xl font-medium shadow-lg shadow-slate-200 hover:bg-slate-900 transition-colors mt-2">Update Internet Settings</button>
+                </form>
+            </div>
+
+             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-lg font-bold text-slate-800 mb-2">Advanced WAN</h2>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-2">
+                        <div>
+                            <div class="text-slate-800 font-medium">MAC Clone</div>
+                            <div class="text-xs text-slate-400">Use PC's MAC Address</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                </div>
+             </div>
+        </div>
+
+        <!-- WIFI VIEW -->
+        <div id="view-wifi" class="p-4 space-y-4 hidden">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-lg font-bold text-slate-800 mb-4">Wireless Settings (2.4GHz)</h2>
+                <form onsubmit="saveWifiSettings(event, '2.4')" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">SSID Name</label>
+                        <input type="text" id="ssid-24" class="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 focus:border-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Password</label>
+                        <div class="relative">
+                            <input type="text" id="pass-24" class="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 focus:border-blue-500 outline-none">
+                            <button type="button" onclick="generatePassword('pass-24')" class="absolute right-2 top-1.5 text-blue-500 text-xs font-bold uppercase hover:bg-blue-50 px-2 py-1 rounded">Gen</button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between py-2">
+                        <span class="text-sm text-slate-600">Broadcast SSID</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    <button type="submit" class="w-full bg-slate-800 text-white py-3 rounded-xl font-medium shadow-lg shadow-slate-200 hover:bg-slate-900 transition-colors">Save 2.4GHz Changes</button>
+                </form>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-lg font-bold text-slate-800 mb-4">Wireless Settings (5GHz)</h2>
+                <form onsubmit="saveWifiSettings(event, '5')" class="space-y-4">
+                     <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">SSID Name</label>
+                        <input type="text" id="ssid-5" class="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 focus:border-blue-500 outline-none">
+                    </div>
+                    <div>
+                         <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Password</label>
+                         <input type="text" id="pass-5" class="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 focus:border-blue-500 outline-none">
+                    </div>
+                     <button type="submit" class="w-full bg-slate-800 text-white py-3 rounded-xl font-medium shadow-lg shadow-slate-200 hover:bg-slate-900 transition-colors">Save 5GHz Changes</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- DEVICES VIEW -->
+        <div id="view-devices" class="p-4 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-slate-800">Connected Devices</h2>
+                <button onclick="renderDevices()" class="text-blue-500 text-sm font-medium hover:text-blue-600">
+                    <i class="fa-solid fa-arrows-rotate mr-1"></i> Refresh
+                </button>
+            </div>
+            <div id="devices-list" class="space-y-3">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- SYSTEM VIEW -->
+        <div id="view-system" class="p-4 space-y-4 hidden">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-lg font-bold text-slate-800 mb-4">Maintenance</h2>
+                <div class="space-y-3">
+                    <button onclick="systemAction('reboot')" class="w-full flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-blue-50 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
+                                <i class="fa-solid fa-rotate-right"></i>
+                            </div>
+                            <div class="text-left">
+                                <div class="font-medium text-slate-800">Reboot Router</div>
+                                <div class="text-xs text-slate-400">Restart the system safely</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-blue-500"></i>
+                    </button>
+                    
+                    <button onclick="systemAction('reset')" class="w-full flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-red-50 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
+                                <i class="fa-solid fa-trash"></i>
+                            </div>
+                            <div class="text-left">
+                                <div class="font-medium text-slate-800">Factory Reset</div>
+                                <div class="text-xs text-slate-400">Clear all settings</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-red-500"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-lg font-bold text-slate-800 mb-4">Advanced</h2>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-2">
+                        <span class="text-slate-700">LED Lights</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between p-2 border-t border-slate-50">
+                        <span class="text-slate-700">Remote Management</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav id="bottom-nav" class="hidden bg-white border-t border-slate-200 pb-safe-bottom">
+        <div class="grid grid-cols-5 h-16">
+            <button onclick="switchTab('dashboard')" class="nav-btn active flex flex-col items-center justify-center gap-1 text-blue-600" data-target="dashboard">
+                <i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>
+                <span class="text-[9px] font-medium">Dashboard</span>
+            </button>
+             <button onclick="switchTab('internet')" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-blue-500" data-target="internet">
+                <i class="fa-solid fa-globe text-lg mb-0.5"></i>
+                <span class="text-[9px] font-medium">Internet</span>
+            </button>
+            <button onclick="switchTab('wifi')" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-blue-500" data-target="wifi">
+                <i class="fa-solid fa-wifi text-lg mb-0.5"></i>
+                <span class="text-[9px] font-medium">Wi-Fi</span>
+            </button>
+            <button onclick="switchTab('devices')" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-blue-500" data-target="devices">
+                <i class="fa-solid fa-laptop-medical text-lg mb-0.5"></i>
+                <span class="text-[9px] font-medium">Devices</span>
+            </button>
+            <button onclick="switchTab('system')" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-blue-500" data-target="system">
+                <i class="fa-solid fa-sliders text-lg mb-0.5"></i>
+                <span class="text-[9px] font-medium">System</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-xl opacity-0 transition-opacity duration-300 pointer-events-none z-50 text-sm font-medium">
+        Settings Saved
+    </div>
+
+    <script>
+        // --- STATE MANAGEMENT ---
+        const state = {
+            isLoggedIn: false,
+            routerIp: localStorage.getItem('routerIp') || '192.168.1.1',
+            wan: {
+                status: 'connected',
+                type: localStorage.getItem('wanType') || 'dynamic',
+                ip: '0.0.0.0',
+                manualConnect: true
+            },
+            wifi: {
+                ssid24: localStorage.getItem('ssid24') || 'Netis_2.4G_B3A1',
+                pass24: localStorage.getItem('pass24') || '12345678',
+                ssid5: localStorage.getItem('ssid5') || 'Netis_5G_B3A1',
+                pass5: localStorage.getItem('pass5') || '12345678'
+            },
+            devices: [
+                { name: 'iPhone 14 Pro', ip: '192.168.1.101', mac: 'A2:33:F1:C2:11:00', type: 'mobile' },
+                { name: 'MacBook Air', ip: '192.168.1.102', mac: 'B4:11:D3:E2:22:11', type: 'laptop' },
+                { name: 'Samsung TV', ip: '192.168.1.105', mac: 'C1:44:A2:F5:33:22', type: 'tv' },
+                { name: 'PlayStation 5', ip: '192.168.1.110', mac: 'D5:22:C1:B4:44:33', type: 'game' },
+                { name: 'Unknown Device', ip: '192.168.1.115', mac: 'E6:55:B2:A1:55:44', type: 'unknown' }
+            ]
+        };
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fill inputs with current state
+            document.getElementById('router-ip').value = state.routerIp;
+            document.getElementById('ssid-24').value = state.wifi.ssid24;
+            document.getElementById('pass-24').value = state.wifi.pass24;
+            document.getElementById('ssid-5').value = state.wifi.ssid5;
+            document.getElementById('pass-5').value = state.wifi.pass5;
+            
+            // Set WAN Type
+            document.getElementById('wan-type').value = state.wan.type;
+            updateWanForm();
+
+            renderDevices();
+            
+            // Form Handler
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+
+            // Generate fake WAN IP initially
+            updateWanIpDisplay();
+        });
+
+        // --- ACTIONS ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const ipInput = document.getElementById('router-ip').value;
+            const originalText = btn.innerText;
+
+            // Save IP
+            state.routerIp = ipInput;
+            localStorage.setItem('routerIp', state.routerIp);
+
+            // Update Dashboard with IP
+            document.getElementById('header-ip').innerText = state.routerIp;
+            document.getElementById('dashboard-router-ip').innerText = `IP: ${state.routerIp}`;
+            
+            // Simulate Network Request
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Connecting to ${state.routerIp}...`;
+            btn.disabled = true;
+
+            setTimeout(() => {
+                state.isLoggedIn = true;
+                document.getElementById('login-screen').classList.add('opacity-0', 'pointer-events-none');
+                document.getElementById('app-header').classList.remove('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                document.getElementById('bottom-nav').classList.remove('hidden');
+                
+                // Remove login screen from DOM after fade
+                setTimeout(() => {
+                    document.getElementById('login-screen').style.display = 'none';
+                }, 500);
+            }, 1500);
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        function switchTab(tabName) {
+            // Update Nav UI
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if(btn.dataset.target === tabName) {
+                    btn.classList.add('text-blue-600', 'active');
+                    btn.classList.remove('text-slate-400');
+                } else {
+                    btn.classList.remove('text-blue-600', 'active');
+                    btn.classList.add('text-slate-400');
+                }
+            });
+
+            // Hide all views
+            ['dashboard', 'internet', 'wifi', 'devices', 'system'].forEach(view => {
+                const el = document.getElementById(`view-${view}`);
+                if (view === tabName) {
+                    el.classList.remove('hidden');
+                    el.classList.add('animate-fade-in');
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('animate-fade-in');
+                }
+            });
+        }
+
+        function updateWanForm() {
+            const type = document.getElementById('wan-type').value;
+            document.getElementById('pppoe-fields').classList.add('hidden');
+            document.getElementById('static-fields').classList.add('hidden');
+            
+            if(type === 'pppoe') document.getElementById('pppoe-fields').classList.remove('hidden');
+            if(type === 'static') document.getElementById('static-fields').classList.remove('hidden');
+        }
+
+        function saveWanSettings(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Applying...';
+            btn.disabled = true;
+
+            // Simulate saving delay
+            setTimeout(() => {
+                state.wan.type = document.getElementById('wan-type').value;
+                localStorage.setItem('wanType', state.wan.type);
+                btn.innerText = originalText;
+                btn.disabled = false;
+                
+                // Re-connect logic simulation
+                if(state.wan.status === 'connected') {
+                    toggleWanConnection(true); // Force reconnect
+                }
+                showToast('WAN Settings Updated');
+            }, 1500);
+        }
+
+        function toggleWanConnection(forceReconnect = false) {
+            const toggle = document.getElementById('wan-toggle');
+            const isChecking = toggle.checked;
+            
+            // Update UI immediately for interaction
+            const dashIcon = document.getElementById('dash-wan-icon');
+            const dashIconBg = document.getElementById('dash-wan-icon-bg');
+            const dashStatus = document.getElementById('dash-wan-status');
+            const dashStats = document.getElementById('dash-wan-stats');
+            const badge = document.getElementById('wan-status-badge');
+
+            // Simulation Logic
+            if(isChecking || forceReconnect) {
+                // Connecting...
+                state.wan.status = 'connecting';
+                badge.className = 'text-xs font-bold px-2 py-1 bg-yellow-100 text-yellow-700 rounded-md mr-3';
+                badge.innerText = 'CONNECTING...';
+                
+                dashStatus.innerText = 'Connecting...';
+                dashIcon.className = 'fa-solid fa-circle-notch fa-spin text-2xl text-yellow-600';
+                dashIconBg.className = 'w-14 h-14 rounded-full bg-yellow-100 flex items-center justify-center transition-colors';
+                
+                setTimeout(() => {
+                    state.wan.status = 'connected';
+                    badge.className = 'text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-md mr-3';
+                    badge.innerText = 'CONNECTED';
+                    
+                    updateWanIpDisplay();
+                    
+                    dashStatus.innerText = 'Connected';
+                    dashIcon.className = 'fa-solid fa-check text-2xl text-green-500';
+                    dashIconBg.className = 'w-14 h-14 rounded-full bg-green-50 flex items-center justify-center pulse-ring transition-colors';
+                    dashStats.classList.remove('opacity-50');
+                    showToast('Internet Connected');
+                }, 2000);
+
+            } else {
+                // Disconnecting
+                state.wan.status = 'disconnected';
+                state.wan.ip = '0.0.0.0';
+                
+                badge.className = 'text-xs font-bold px-2 py-1 bg-red-100 text-red-700 rounded-md mr-3';
+                badge.innerText = 'DISCONNECTED';
+                
+                document.getElementById('wan-ip').innerText = 'Disconnected';
+                
+                dashStatus.innerText = 'Offline';
+                dashIcon.className = 'fa-solid fa-xmark text-2xl text-red-500';
+                dashIconBg.className = 'w-14 h-14 rounded-full bg-red-50 flex items-center justify-center pulse-ring-error transition-colors';
+                dashStats.classList.add('opacity-50');
+                showToast('Internet Disconnected');
+            }
+        }
+
+        function updateWanIpDisplay() {
+            if (state.wan.status === 'connected') {
+                const fakeIp = `172.16.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+                state.wan.ip = fakeIp;
+                document.getElementById('wan-ip').innerText = fakeIp;
+            }
+        }
+
+        function saveWifiSettings(e, band) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                if(band === '2.4') {
+                    state.wifi.ssid24 = document.getElementById('ssid-24').value;
+                    state.wifi.pass24 = document.getElementById('pass-24').value;
+                    localStorage.setItem('ssid24', state.wifi.ssid24);
+                    localStorage.setItem('pass24', state.wifi.pass24);
+                } else {
+                    state.wifi.ssid5 = document.getElementById('ssid-5').value;
+                    state.wifi.pass5 = document.getElementById('pass-5').value;
+                    localStorage.setItem('ssid5', state.wifi.ssid5);
+                    localStorage.setItem('pass5', state.wifi.pass5);
+                }
+                
+                btn.innerText = originalText;
+                btn.disabled = false;
+                showToast(`Settings for ${band}GHz saved!`);
+            }, 1500);
+        }
+
+        function renderDevices() {
+            const container = document.getElementById('devices-list');
+            container.innerHTML = '';
+            
+            state.devices.forEach(device => {
+                let icon = 'fa-question';
+                let color = 'bg-slate-100 text-slate-500';
+                
+                if(device.type === 'mobile') { icon = 'fa-mobile-screen'; color = 'bg-blue-100 text-blue-600'; }
+                if(device.type === 'laptop') { icon = 'fa-laptop'; color = 'bg-purple-100 text-purple-600'; }
+                if(device.type === 'tv') { icon = 'fa-tv'; color = 'bg-green-100 text-green-600'; }
+                if(device.type === 'game') { icon = 'fa-gamepad'; color = 'bg-red-100 text-red-600'; }
+
+                const html = `
+                <div class="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center">
+                            <i class="fa-solid ${icon}"></i>
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800">${device.name}</div>
+                            <div class="text-xs text-slate-400">${device.ip}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                         <button class="text-slate-300 hover:text-red-500 p-2">
+                            <i class="fa-solid fa-ban"></i>
+                        </button>
+                    </div>
+                </div>
+                `;
+                container.innerHTML += html;
+            });
+            document.getElementById('device-count').innerText = state.devices.length;
+        }
+
+        function systemAction(action) {
+            if(confirm(`Are you sure you want to ${action} the router?`)) {
+                showToast(`System ${action} initiated...`);
+                setTimeout(() => {
+                    location.reload();
+                }, 3000);
+            }
+        }
+
+        function generatePassword(inputId) {
+            const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$";
+            let pass = "";
+            for (let i = 0; i < 12; i++) {
+                pass += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById(inputId).value = pass;
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('opacity-0');
+            setTimeout(() => t.classList.add('opacity-0'), 3000);
+        }
+
+    </script>
+</body>
+</html>
